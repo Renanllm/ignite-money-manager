@@ -1,13 +1,12 @@
 import { FormEvent, useState } from 'react';
 import Modal from 'react-modal';
-
 import closeImg from '../../assets/close.svg';
 import incomeImg from '../../assets/income.svg';
 import outcomeImg from '../../assets/outcome.svg';
-import { api } from '../../services/api';
+import { useTransactions } from '../../hooks/useTransactions';
 import { TransactionTypeEnum } from '../../shared/enums/transaction-type.enum';
+import { ContainerForm, RadioBox, TransactionTypeContainer } from './styles';
 
-import { ContainerForm, TransactionTypeContainer, RadioBox } from './styles';
 
 interface IModalProps {
   isOpen: boolean;
@@ -15,6 +14,8 @@ interface IModalProps {
 }
 
 export function NewTransactionModal({ isOpen, onRequestClose }: IModalProps) {
+  const { createTransaction } = useTransactions();
+
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState(0);
   const [category, setCategory] = useState('');
@@ -23,19 +24,22 @@ export function NewTransactionModal({ isOpen, onRequestClose }: IModalProps) {
   function handleCreateNewTransaction(event: FormEvent) {
     event.preventDefault();
 
-    const transaction = {
+    createTransaction({
       title,
       amount,
       category,
       type
-    };
+    }).then(() => {
+      clearNewTransactionForm();
+      onRequestClose();
+    })
+  }
 
-    api.post('/transactions', transaction)
-      .then(response => {
-        console.log(response);
-        onRequestClose();
-      })
-      .catch(error => console.error(error))
+  function clearNewTransactionForm() {
+    setTitle('');
+    setAmount(0);
+    setCategory('');
+    setType(TransactionTypeEnum.DEPOSIT);
   }
 
   return (

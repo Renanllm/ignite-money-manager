@@ -1,19 +1,10 @@
-import { useEffect, useState } from "react";
-import { api } from "../../services/api";
-import { ITransaction } from "../../shared/models/transaction.interface";
+import { useTransactions } from "../../hooks/useTransactions";
+import { currencyConverter } from "../../shared/utils/currency-converter";
+import { dateConverter } from "../../shared/utils/date-converter";
 import { Container } from "./styles";
 
 export function TransactionsTable() {
-  const [transactions, setTransactions] = useState<ITransaction[]>([]);
-
-  useEffect(() => {
-    api.get('transactions')
-      .then(response => {
-        console.log(response);
-        setTransactions(response.data.transactions);
-      })
-      .catch(error => console.error(error))
-  }, []);
+  const { transactions } = useTransactions();
 
   return (
     <Container>
@@ -32,16 +23,11 @@ export function TransactionsTable() {
             <tr key={transaction.id}>
               <td>{transaction.title}</td>
               <td className={transaction.type}>
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(transaction.amount)}
+                {currencyConverter(transaction.amount)}
               </td>
               <td>{transaction.category}</td>
               <td>
-                {new Intl.DateTimeFormat('pt-BR').format(
-                  new Date(transaction.createdAt)
-                )}
+                {dateConverter(new Date(transaction.createdAt))}
               </td>
             </tr>
           ))}
